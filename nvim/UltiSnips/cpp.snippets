@@ -1,0 +1,469 @@
+# A valid snippet should starts with:
+#
+#		snippet trigger_word [ "description" [ options ] ]
+#
+# and end with:
+#
+#		endsnippet
+#
+# Snippet options:
+#
+#		b - Beginning of line.
+#		i - In-word expansion.
+#		w - Word boundary.
+#		r - Regular expression
+#		e - Custom context snippet
+#		A - Snippet will be triggered automatically, when condition matches.
+#
+# Basic example:
+#
+#		snippet emitter "emitter properties" b
+#		private readonly ${1} = new Emitter<$2>()
+#		public readonly ${1/^_(.*)/$1/}: Event<$2> = this.$1.event
+#		endsnippet
+#
+# Online reference: https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt
+
+snippet pq "priority_queue" b
+template<typename T>
+using PQ=__gnu_pbds::priority_queue<T>;
+endsnippet
+
+snippet tree "rbtree" b
+template<typename K, typename V=__gnu_pbds::null_type>
+using Tree = __gnu_pbds::tree<K, V, less<K>, __gnu_pbds::rb_tree_tag, __gnu_pbds::tree_order_statistics_node_update>;
+endsnippet
+
+snippet gphash "gp hash table with custome hash" b
+struct custom_hash {
+    static uint64_t splitmix64(uint64_t x) {
+        // http://xorshift.di.unimi.it/splitmix64.c
+        x += 0x9e3779b97f4a7c15;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+        return x ^ (x >> 31);
+    }
+
+    size_t operator()(uint64_t x) const {
+        static const uint64_t FIXED_RANDOM = chrono::steady_clock::now().time_since_epoch().count();
+        return splitmix64(x + FIXED_RANDOM);
+    }
+};
+template<typename K, typename V>
+using hash_table=__gnu_pbds::gp_hash_table<K, V,custom_hash>;
+endsnippet
+
+snippet mint "mod int" b
+template <int MOD>
+struct ModInt {
+    int val;
+    ModInt(ll v = 0) : val(v % MOD) { if (val < 0) val += MOD; };
+    ModInt operator+() const { return ModInt(val); }
+    ModInt operator-() const { return ModInt(MOD - val); }
+    ModInt inv() const {
+        auto a = val, m = MOD, u = 0, v = 1;
+        while (a != 0) { auto t = m / a; m -= t * a; swap(a, m); u -= t * v; swap(u, v); }
+        assert(m == 1);
+        return u;
+    }
+    ModInt pow(ll n) const {
+        auto x = ModInt(1);
+        auto b = *this;
+        while (n > 0) {
+            if (n & 1) x *= b;
+            n >>= 1;
+            b *= b;
+        }
+        return x;
+    }
+    friend ModInt operator+ (ModInt lhs, const ModInt& rhs) { return lhs += rhs; }
+    friend ModInt operator- (ModInt lhs, const ModInt& rhs) { return lhs -= rhs; }
+    friend ModInt operator* (ModInt lhs, const ModInt& rhs) { return lhs *= rhs; }
+    friend ModInt operator/ (ModInt lhs, const ModInt& rhs) { return lhs /= rhs; }
+    ModInt& operator+=(const ModInt& x) { if ((val += x.val) >= MOD) val -= MOD; return *this; }
+    ModInt& operator-=(const ModInt& x) { if ((val -= x.val) < 0) val += MOD; return *this; }
+    ModInt& operator*=(const ModInt& x) { val = int64_t(val) * x.val % MOD; return *this; }
+    ModInt& operator/=(const ModInt& x) { return *this *= x.inv(); }
+    bool operator==(const ModInt& b) const { return val == b.val; }
+    bool operator!=(const ModInt& b) const { return val != b.val; }
+    friend std::istream& operator>>(std::istream& is, ModInt& x) noexcept { return is >> x.val; }
+    friend std::ostream& operator<<(std::ostream& os, const ModInt& x) noexcept { return os << x.val; }
+};
+using mint = ModInt<1'000'000'007>;
+using mint = ModInt<998244353>;
+endsnippet
+
+snippet dir "dir vector" b
+const vector<pair<int, int>> dir{{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+endsnippet
+
+snippet dir8 "dir vector" b
+const vector<pair<int, int>> dir{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+endsnippet
+
+snippet rng "random number generator" b
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+int gen(int l, int r) {
+    assert(l<=r);
+    return rng()%(r-l+1)+l;
+}
+${0}
+endsnippet
+
+
+snippet uf "Union Find" b
+struct UF {
+    vector<int> fa, sz;
+    UF(int n) : fa(n), sz(n, 1) { iota(fa.begin(), fa.end(), 0); }
+
+    int find(int x) { return fa[x] == x ? x : fa[x] = find(fa[x]); }
+
+    bool same(int x, int y) { return find(x) == find(y); }
+
+    bool join(int x, int y) {
+        x = find(x), y = find(y);
+        if (x == y) return false;
+        if (sz[x] > sz[y]) swap(x, y);
+        fa[x] = y;
+        sz[y] += sz[x];
+        return true;
+    }
+};
+$0
+endsnippet
+
+
+snippet rall "rbegin, rend" wA
+$1.rbegin(), $1.rend()$0
+endsnippet
+
+snippet all "begin, end" i
+begin($1), end($1)$0
+endsnippet
+
+
+# snippet size "size" wA
+# (int)${1}.size()${0}
+# endsnippet
+
+priority 100
+snippet long "long template for cp" bw
+//#pragma GCC target("avx,avx2,fma")
+//#pragma GCC optimize("unroll-loops,Ofast")
+#include <bits/stdc++.h>
+
+/*{{{*/
+using namespace std;
+#ifndef LOCAL // https://github.com/p-ranav/pprint
+#define de(...)
+#define de2(...)
+#endif
+#define all(x) begin(x),end(x)
+using ll = long long;
+using pii = pair<int, int>;
+
+inline namespace Traits {
+    // is iterable
+    template<typename T, typename = void> struct is_iterable : false_type {};
+    template<typename T>
+    struct is_iterable<T, void_t<decltype(begin(declval<T>())), decltype(end(declval<T>()))>> : true_type {};
+    template<typename T> constexpr bool is_iterable_v = is_iterable<T>::value;
+    // is readable
+    template<typename T, typename = void> struct is_readable : false_type {};
+    template<typename T>
+    struct is_readable<T, enable_if_t<is_same_v<decltype(cin >> declval<T&>()), istream&>>> : true_type {};
+    template<typename T> constexpr bool is_readable_v = is_readable<T>::value;
+    // is printable
+    template<typename T, typename = void> struct is_printable : false_type {};
+    template<typename T>
+    struct is_printable<T, enable_if_t<is_same_v<decltype(cout << declval<T>()), ostream&>>> : true_type {};
+    template<typename T> constexpr bool is_printable_v = is_printable<T>::value;
+}
+inline namespace Input {
+    template<typename T> constexpr bool needs_input_v = !is_readable_v<T> && is_iterable_v<T>;
+    template<typename T, typename U> void re(pair<T, U>& p);
+    template<typename T> enable_if_t<is_readable_v<T>> re(T& x) { cin>>x; }
+    template<typename T> enable_if_t<needs_input_v<T>> re(T& v) { for (auto& x : v) re(x); }
+    template<typename... T> void re(T&... args) {(re(args), ...);}
+    template<typename T, typename U> void re(pair<T, U>& p) { re(p.first, p.second); };
+}
+inline namespace Output {
+    template<typename T> constexpr bool needs_output_v = !is_printable_v<T> && is_iterable_v<T>;
+    template<int offset=0, typename... T> void wr(T... args);
+    template<int offset=0,typename T> enable_if_t<is_printable_v<T> && is_integral_v<T>> _W(const T& x) { cout<<x+offset; }
+    template<int offset=0,typename T> enable_if_t<is_printable_v<T> && !is_integral_v<T>> _W(const T& x) { cout<<x; }
+    template<int offset=0,typename T, typename U> void _W(const pair<T, U>& p) { wr<offset>(p.first, p.second); }
+    template<int offset=0,typename It> void _W(It f, const It& l) { for (;f!=l; ++f) { _W<offset>(*f); if (f!=l) cout<<' '; }}
+    template<int offset=0,typename T> enable_if_t<needs_output_v<T>> _W(const T& x) { _W<offset>(begin(x), end(x)); }
+    template<int offset, typename... T> void wr(T... args) { 
+        int i=0; ((_W<offset>(args), ++i, cout<<(i==sizeof...(args) ? '\n' : ' ')), ...);
+#ifdef LOCAL
+        cout.flush();
+#endif
+    }
+} /*}}}*/
+
+void test_case() {
+	$0
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int tt=1;
+    re(tt);
+    while (tt--) {
+        test_case();
+    }
+    return 0;
+}
+endsnippet
+
+snippet temp "regular cp template" 
+#include <bits/stdc++.h>
+using namespace std;
+#define all(x) begin(x),end(x) //{{{
+#ifndef LOCAL // https://tgc54.com/posts/debug_output_header/
+#define de(...)
+#define de2(...)
+#endif
+using ll = long long; //}}}
+
+void test_case() {
+	$0
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int tt = 1;
+    cin >> tt;
+    while (tt--) {
+        test_case();
+    }
+}
+endsnippet
+
+snippet ntemp "regular codeforces template for c++20" b
+#include <bits/stdc++.h>
+using namespace std;
+#ifndef LOCAL // https://github.com/p-ranav/pprint //{{{
+#define de(...)
+#define de2(...)
+#endif
+using ll = long long;
+using pii = pair<int, int>; //}}}
+namespace r = ranges;
+namespace v = views;
+
+void test_case() {
+	$0
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int tt=1;
+    cin >> tt;
+    while (tt--) {
+        test_case();
+    }
+}
+endsnippet
+
+snippet mini "minimal template" 
+#include <bits/stdc++.h>
+using namespace std;
+#define all(x) begin(x),end(x) //{{{
+#ifndef LOCAL // https://tgc54.com/posts/debug_output_header/
+#define de(...)
+#define de2(...)
+#endif
+using ll = long long; //}}}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+	${0}
+}
+endsnippet
+
+snippet debug "debug code" wb
+#ifndef LOCAL // https://github.com/p-ranav/pprint
+#define de(...)
+#define de2(...)
+#endif
+endsnippet
+
+snippet qpow "quick power" wb
+template <typename T>
+T qpow(T a, int p) {
+    T res{1};
+    for (; p; p>>=1) {
+        if (p & 1) res *= a;
+        a *= a;
+    }
+    return res;
+}
+endsnippet
+
+snippet fastio "fast io" wb
+namespace fastio {
+    #define fread_unlocked fread 
+    #define fwrite_unlocked fwrite
+    static constexpr int SZ = 1 << 17;
+    char ibuf[SZ], obuf[SZ];
+    int pil = 0, pir = 0, por = 0;
+
+    inline void load() {
+        memmove(ibuf, ibuf + pil, pir - pil);
+        pir = pir - pil +
+              (int)fread_unlocked(ibuf + pir - pil, 1, SZ - pir + pil, stdin);
+        pil = 0;
+    }
+
+    inline void re(char& c) {
+        if (pil + 32 > pir) load();
+        c = ibuf[pil++];
+    }
+    template <typename T>
+    inline void re(T& x) {
+        if (pil + 32 > pir) load();
+        char c;
+        do c = ibuf[pil++];
+        while (c < '-');
+        [[maybe_unused]] bool minus = false;
+        if constexpr (std::is_signed<T>::value == true) {
+            if (c == '-') minus = true, c = ibuf[pil++];
+        }
+        x = 0;
+        while (c >= '0') {
+            x = x * 10 + (c & 15);
+            c = ibuf[pil++];
+        }
+        if constexpr (std::is_signed<T>::value == true) {
+            if (minus) x = -x;
+        }
+    }
+    inline void re() {}
+    template <typename Head, typename... Tail>
+    inline void re(Head& head, Tail&... tail) {
+        re(head);
+        re(tail...);
+    }
+
+    inline void skip_space() {
+        if (pil + 32 > pir) load();
+        while (ibuf[pil] <= ' ') pil++;
+    }
+
+    inline void flush() {
+        fwrite_unlocked(obuf, 1, por, stdout);
+        por = 0;
+    }
+
+    struct Pre {
+        char num[40000];
+        constexpr Pre() : num() {
+            for (int i = 0; i < 10000; i++) {
+                int n = i;
+                for (int j = 3; j >= 0; j--) {
+                    num[i * 4 + j] = n % 10 + '0';
+                    n /= 10;
+                }
+            }
+        }
+    } constexpr pre;
+
+    struct Post {
+        Post() { std::atexit(flush); }
+    } post;
+
+    inline void wt(char c) {
+        if (por > SZ - 32) flush();
+        obuf[por++] = c;
+    }
+    inline void wt(bool b) {
+        if (por > SZ - 32) flush();
+        obuf[por++] = b ? '1' : '0';
+    }
+    template <typename T>
+    inline void wt(T x) {
+        if (por > SZ - 32) flush();
+        if (!x) {
+            obuf[por++] = '0';
+            return;
+        }
+        if constexpr (std::is_signed<T>::value == true) {
+            if (x < 0) obuf[por++] = '-', x = -x;
+        }
+        int i = 12;
+        char buf[16];
+        while (x >= 10000) {
+            memcpy(buf + i, pre.num + (x % 10000) * 4, 4);
+            x /= 10000;
+            i -= 4;
+        }
+        if (x < 100) {
+            if (x < 10) {
+                obuf[por] = char('0' + x);
+                ++por;
+            } else {
+                uint32_t q = (uint32_t(x) * 205) >> 11;
+                uint32_t r = uint32_t(x) - q * 10;
+                obuf[por] = char('0' + q);
+                obuf[por + 1] = char('0' + r);
+                por += 2;
+            }
+        } else {
+            if (x < 1000) {
+                memcpy(obuf + por, pre.num + (x << 2) + 1, 3);
+                por += 3;
+            } else {
+                memcpy(obuf + por, pre.num + (x << 2), 4);
+                por += 4;
+            }
+        }
+        memcpy(obuf + por, buf + i + 4, 12 - i);
+        por += 12 - i;
+    }
+
+    inline void wt() {}
+    template <typename Head, typename... Tail>
+    inline void wt(Head&& head, Tail&&... tail) {
+        wt(head);
+        wt(std::forward<Tail>(tail)...);
+    }
+    template <typename... Args>
+    inline void wr(Args&&... x) {
+        wt(std::forward<Args>(x)...);
+        wt('\n');
+    }
+
+}  // namespace fastio
+using fastio::re;
+using fastio::wr;
+endsnippet
+
+snippet monoid "monoid for segment tree" 
+struct OP {
+    using S = ;
+    using F = ;
+    static S e() {
+
+    }
+    static S op(const S& x, const S& y) {
+
+    }
+    static F id() {
+
+    }
+    static S mapping(const F& f, const S& x) {
+
+    }
+    static auto composition(F& f, F& g) -> F {
+
+    }
+};
+endsnippet
+

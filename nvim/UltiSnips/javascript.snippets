@@ -1,0 +1,20 @@
+snippet clog "console.log()" w
+console.log($0)
+endsnippet
+
+snippet ust "useState" w
+const [$1, set`!p snip.rv=(t[1][0].upper()+t[1][1:] if len(t[1])>1 else "")`] = useState($2)
+endsnippet
+
+snippet uust "useState" w
+const [$1, set$1] = useState($2)
+endsnippet
+
+snippet expd "export default" bw
+export default 
+endsnippet
+
+snippet arf "arrow function" wA
+($1) => {$2}
+endsnippet
+

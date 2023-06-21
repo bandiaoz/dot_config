@@ -1,0 +1,85 @@
+snippet temp "ACM template" b
+package main
+
+import (
+	"bufio"
+	. "fmt"
+	"os"
+	"strconv"
+)
+
+var (
+	inn = bufio.NewScanner(os.Stdin)
+	out = bufio.NewWriter(os.Stdout)
+)
+
+func main() {
+	defer out.Flush()
+	inn.Buffer([]byte{}, 10000000)
+	inn.Split(bufio.ScanWords)
+	//prep
+	$0
+}
+
+//-------------------template------------------
+func gcd(a, b int) int {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+func max(a ...int) int {
+	mx := a[0]
+	for _, x := range a {
+		if x > mx {
+			mx = x
+		}
+	}
+	return mx
+}
+func maxll(a ...int64) int64 {
+	mx := a[0]
+	for _, x := range a {
+		if x > mx {
+			mx = x
+		}
+	}
+	return mx
+}
+func min(a ...int) int {
+	mn := a[0]
+	for _, x := range a {
+		if x < mn {
+			mn = x
+		}
+	}
+	return mn
+}
+func minll(a ...int64) int64 {
+	mn := a[0]
+	for _, x := range a {
+		if x < mn {
+			mn = x
+		}
+	}
+	return mn
+}
+func rd() (x int) {
+	inn.Scan()
+	x, _ = strconv.Atoi(string(inn.Bytes()))
+	return x
+}
+func rdll() (x int64) {
+	inn.Scan()
+	x, _ = strconv.ParseInt(string(inn.Bytes()), 10, 64)
+	return x
+}
+func rdch() (x byte) {
+	inn.Scan()
+	return inn.Bytes()[0]
+}
+func rds() string {
+	inn.Scan()
+	return string(inn.Bytes())
+}
+endsnippet
